@@ -42,11 +42,11 @@
       border-radius: 4px;
     }
 
-	.filled {
-	  background-image: url('puzzle.png'); /* Your custom image */
-	  background-size: 400px 400px; /* Match board size */
-	  background-repeat: no-repeat;
-	}
+    .filled {
+      background-image: url('puzzle.png'); /* Your custom image */
+      background-size: 400px 400px; /* Match board size */
+      background-repeat: no-repeat;
+    }
 
     #pieces {
       display: flex;
@@ -88,6 +88,7 @@ const game = document.getElementById('game');
 const piecesContainer = document.getElementById('pieces');
 const scoreDisplay = document.getElementById('Chel-Points');
 let score = 0;
+let currentPiece = null;
 
 // Shapes
 const blockShapes = [
@@ -95,7 +96,7 @@ const blockShapes = [
   [[1,0],[1,0],[1,1]], [[0,1],[0,1],[1,1]], [[1]], [[1,1,1,1]]
 ];
 
-// Board
+// Board setup
 const board = [];
 for (let i = 0; i < gridSize * gridSize; i++) {
   const cell = document.createElement('div');
@@ -104,39 +105,36 @@ for (let i = 0; i < gridSize * gridSize; i++) {
   board.push(cell);
 }
 
-// Generate Pieces
+// Generate pieces
 function generatePieces() {
   piecesContainer.innerHTML = '';
-  const totalWidth = piecesContainer.offsetWidth;
-  const pieceWidth = totalWidth / 4;	
-const pieceSpacing = 300; // You can adjust this value to control the space
+  const pieceSpacing = 300; // Spacing between pieces
 
-for (let i = 0; i < 3; i++) {
-  const shape = blockShapes[Math.floor(Math.random() * blockShapes.length)];
-  const piece = document.createElement('div');
-  piece.classList.add('piece');
-  piece.style.gridTemplateColumns = `repeat(${shape[0].length}, 1fr)`;
-  piece.shape = shape;
-  
-  piece.style.left = `${(i * pieceSpacing) + 50}px`; // 👈 Corrected spacing here
-  piece.style.top = `0px`;
+  for (let i = 0; i < 3; i++) {
+    const shape = blockShapes[Math.floor(Math.random() * blockShapes.length)];
+    const piece = document.createElement('div');
+    piece.classList.add('piece');
+    piece.style.gridTemplateColumns = `repeat(${shape[0].length}, 1fr)`;
+    piece.shape = shape;
 
-  shape.forEach(row => row.forEach(cell => {
-    const block = document.createElement('div');
-    block.classList.add('block');
-    if (!cell) block.style.visibility = 'hidden';
-    piece.appendChild(block);
-  }));
+    piece.style.left = `${(i * pieceSpacing) + 50}px`;
+    piece.style.top = `0px`;
 
-  piece.originalLeft = piece.style.left;
-  piece.originalTop = piece.style.top;
-  makeDraggable(piece);
-  piecesContainer.appendChild(piece);
+    shape.forEach(row => row.forEach(cell => {
+      const block = document.createElement('div');
+      block.classList.add('block');
+      if (!cell) block.style.visibility = 'hidden';
+      piece.appendChild(block);
+    }));
+
+    piece.originalLeft = piece.style.left;
+    piece.originalTop = piece.style.top;
+    makeDraggable(piece);
+    piecesContainer.appendChild(piece);
+  }
 }
 
-// Draggable logic
-let currentPiece = null;
-
+// Make draggable
 function makeDraggable(piece) {
   let offsetX, offsetY, isDragging = false;
 
@@ -180,7 +178,7 @@ function makeDraggable(piece) {
   });
 }
 
-// Check and place pieces
+// Check if piece can be placed
 function canPlacePiece(x, y, shape) {
   for (let i = 0; i < shape.length; i++) {
     for (let j = 0; j < shape[i].length; j++) {
@@ -194,6 +192,7 @@ function canPlacePiece(x, y, shape) {
   return true;
 }
 
+// Place piece on board
 function placePiece(x, y, shape) {
   for (let i = 0; i < shape.length; i++) {
     for (let j = 0; j < shape[i].length; j++) {
@@ -201,8 +200,6 @@ function placePiece(x, y, shape) {
         const cellIndex = (y + i) * gridSize + (x + j);
         const cell = board[cellIndex];
         cell.classList.add('filled');
-
-        // Calculate background position
         const percentX = ((x + j) / (gridSize - 1)) * 100;
         const percentY = ((y + i) / (gridSize - 1)) * 100;
         cell.style.backgroundPosition = `${percentX}% ${percentY}%`;
@@ -211,8 +208,7 @@ function placePiece(x, y, shape) {
   }
 }
 
-
-// Line clearing
+// Line clearing and scoring
 function checkLines() {
   let cleared = 0;
   for (let y = 0; y < gridSize; y++) {
